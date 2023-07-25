@@ -1,11 +1,14 @@
 ---
-title: "About"
 permalink: /about/
 layout: single
-clases: wide
-author_profile:true
+title: "About"
 date: 2023-07-24
+clases: wide
+description: "about me"
+author_profile:true
 ---
+
+## About me
 
 🌱 I am currently a systems engineering student at the catholic university of Pereira, I have participated in the competitive programming seedbed of the university, where I have developed my skills with programming logic, 
 teamwork and problem solving.
