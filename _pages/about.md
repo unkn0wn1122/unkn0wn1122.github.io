@@ -5,7 +5,7 @@ title: "About"
 date: 2023-07-24
 clases: wide
 description: "about me"
-author_profile:true
+author_profile: true
 ---
 
 ## About me
@@ -16,9 +16,7 @@ teamwork and problem solving.
 🎯 My personal focus is computer security where I aspire to continue to improve and achieve different industry certifications such as eJPTv2, eWPTXv2, eCPPT, OSCP.
 
 ### Skills  
-- C++, Python, React, Node, Javascript.
-- HTML, CSS.
-- MySQL.
+- C++, Python.
 - BASH Scripting.
 
 
