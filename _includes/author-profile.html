@@ -105,6 +105,15 @@
         </li>
       {% endif %}
 
+      {% if author.htb %}
+        <li>
+          <a href="https://app.hackthebox.com/profile/{{ author.htb }}" itemprop="sameAs" rel="nofollow noopener noreferrer">
+            <i class="/assets/images/hackthebox.webp" aria-hidden="true"></i> HackTheBox
+          </a>
+        </li>
+      {% endif %}
+
+
       {% if author.linkedin %}
         <li>
           <a href="https://www.linkedin.com/in/{{ author.linkedin }}" itemprop="sameAs" rel="nofollow noopener noreferrer">
