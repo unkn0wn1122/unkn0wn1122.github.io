@@ -1,8 +1,8 @@
 ---
 layout: single
 title: Editorial Writeup
-excerpt: "Descripcion"
-date: 2024-10-10
+excerpt: "Una máquina ideal para usuarios principiantes, donde se explota la vulnerabilidad Server-Side Request Forgery (SSRF) y se realiza una escalada de privilegios abusando de un script con permisos sudo en el sistema. Este tipo de configuración es bastante común en máquinas de está dificultad, lo que permite a los novatos familiarizarse con técnicas fundamentales de explotación y escalada."
+date: 2024-10-13
 classes: wide
 header: 
  teaser: /assets/images/Editorial/teaserImage.webp
@@ -16,7 +16,7 @@ tags:
  - web
 ---
 
-# Reconocimiento:
+# Reconocimiento
 
 Realizando un reconocimiento de puertos con **`nmap`** mediante *TCP*:
 
@@ -29,7 +29,7 @@ nmap -p- --open -vvv -n -sS -Pn --min-rate 5000 10.129.28.76
 </div>
 <br>
 
-El resultado obtenido, se evidencian que solo están abiertos los puertos *80* y *22*. Debido a este resultado, considero que seria una buena opción también enumerar puertos mediante por el protocolo *UDP* .
+El resultado obtenido, se evidencian que solo están abiertos los puertos *80* y *22*. Debido a este resultado, considero que sería una buena opción también enumerar puertos mediante por el protocolo *UDP* .
 
 ```bash
 nmap -p- --open -vvv -n -sS -Pn -sU --min-rate 5000 10.129.28.76
@@ -58,7 +58,7 @@ El resultado del escaneo muestra los siguientes directorios:
 </div>
 <br>
 
-El directorio */upload*  llama la atención, ya que podría ser un vector para encontrar contenido sensible o desencadenar la ejecución de un payload malicioso que carguemos en alguna otra parte de la página. Sin embargo, al revisarlo en el navegador, encontramos que contiene un formulario.
+El directorio */upload*  llama la atención ya que podría ser un vector para encontrar contenido sensible o desencadenar la ejecución de un payload malicioso que carguemos en alguna otra parte de la página. Sin embargo, al revisarlo en el navegador, encontramos que contiene un formulario.
 
 <div style="text-align: center;">
   <img src="/assets/images/Editorial/uploaddir.png" alt="editorial" width="500" oncontextmenu="return false;">
@@ -69,9 +69,9 @@ Los formularios son siempre un posible vector de ataque para explotar vulnerabil
 
 --------------------------------------------------
 
-# Explotaciòn 
+# Explotación 
 
-Analizando las peticiones mediante BurpSuite, intenté cargar un archivo malicioso para obtener una reverse shell, sin éxito. Sin embargo, al ingresar información en el campo **"Cover URL related to your book or"** y cargar una imagen, probamos un **SSRF**. 
+Analizando las peticiones mediante BurpSuite, intenté cargar un archivo malicioso para obtener una reverse shell sin éxito alguno. Sin embargo, al ingresar información en el campo **"Cover URL related to your book or"** y cargar una imagen, probamos un **SSRF**. 
 
 <div style="text-align: center;">
   <img src="/assets/images/Editorial/SSRFPOC1.png" alt="editorial" width="500" oncontextmenu="return false;">
@@ -90,38 +90,41 @@ Confirmamos que es vulnerable a un **SSRF**.
 <div style="text-align: center;">
   <iframe src="https://giphy.com/embed/dtC7b5Wz2H8rFZceA6" width="600" height="220" style="pointer-events: none" oncontextmenu="return false;" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/snl-saturday-night-live-season-44-dtC7b5Wz2H8rFZceA6"></a></p>
 </div>
-<br>
 
 Este es un **SSRF blind/Out-of-band**, ya que no podemos ver directamente el contenido del localhost en la página. Para enumerar los puertos ocultos o detrás de un firewall, utilizamos **'ffuf'**.
 
-Se modifica la petición reemplazando el valor a fuzzear con la palabra **FUZZ**.
-
+Se modifica la petición reemplazando el valor a `fuzzear` con la palabra **FUZZ**.
+`
 <div style="text-align: center;">
   <img src="/assets/images/Editorial/fuff1.png" alt="editorial" width="500" oncontextmenu="return false;">
 </div>
 <br>
 
-Generamos un diccionario con el numero total de puertos con el siguiente comando: **seq 1 65535 > ports.txt**, 
+Generamos un diccionario con el número total de puertos con el siguiente comando.
+
+```bash
+ seq 1 65535 > ports.txt 
+```
 
 ```bash
 ffuf -w /usr/share/SecLists/Discovery/Infrastructure/common-http-ports.txt -request post.req -u http://editorial.htb/upload-cover -fs 61
 ```
 
-En la identificación de un puerto abierto, se utiliza la misma metodología que en la explotación de vulnerabilidades como, por ejemplo, **SQLi Blind**, donde el primer cambio en el contenido de la cabecera **Content-Length** en la respuesta puede indicar que en ese número de puerto está corriendo un servicio en el localhost de la máquina víctima.
+En la identificación de un puerto abierto, se utiliza la misma metodología que en la explotación de vulnerabilidades como por ejemplo **SQLi Blind**, donde el primer cambio en el contenido de la cabecera **Content-Length** en la respuesta puede indicar que en ese número de puerto está corriendo un servicio en el localhost de la máquina víctima.
 
 <div style="text-align: center;">
   <img src="/assets/images/Editorial/fuff2.png" alt="editorial" width="500" oncontextmenu="return false;">
 </div>
 <br>
 
-Al apuntar al puerto 5000, encontramos un archivo JSON con varios endpoints de una API corriendo en el localhost.
+Al apuntar al puerto 5000 encontramos un archivo JSON con varios endpoints de una API corriendo en el localhost.
 
 <div style="text-align: center;">
   <img src="/assets/images/Editorial/endpoints.png" alt="editorial" width="500" oncontextmenu="return false;">
 </div>
 <br>
 
-Al enumerar el endpoint llamado *authors*, obtenemos las siguiente credenciales:
+Al enumerar el endpoint llamado **authors**, obtenemos las siguiente credenciales:
 
 <div style="text-align: center;">
   <img src="/assets/images/Editorial/authors.png" alt="editorial" width="500" oncontextmenu="return false;">
@@ -130,7 +133,7 @@ Al enumerar el endpoint llamado *authors*, obtenemos las siguiente credenciales:
 
 -------
 
-# Escalada de privilegios:
+# Escalada de privilegios
 
 Al iniciar sesión por SSH como dev, realizamos una enumeración básica.
 
@@ -166,18 +169,22 @@ find / -type f -perm -4000 2>/dev/null
 
 ```
 
-Revisar los grupos a los que pertenece el usuario dev con el comando (id), así como las tareas cron que se estén ejecutando en el sistema mediante:
+Revisar los grupos a los que pertenece el usuario dev con el comando `id`, así como las tareas cron que se estén ejecutando en el sistema mediante el siguiente comando:
 
-Durante el proceso de enumeración, encontramos un directorio llamado **"apps"** en el espacio personal del usuario dev, el cual resulta llamativo. Al ingresar y listar su contenido, a simple vista parece vacío, pero al ejecutar un ls -a para mostrar los archivos ocultos, observamos que el directorio contiene un fichero **.git**. Esto abre la posibilidad de ejecutar comandos de Git y revisar el registro de commits del proyecto.
+```bash
+cat /etc/crontab
+```
+
+Durante el proceso de enumeración, encontramos un directorio llamado **"apps"** en el espacio personal del usuario dev, el cual resulta llamativo. Al ingresar y listar su contenido a simple vista parece vacío, pero al ejecutar un `ls -a` para mostrar los archivos ocultos observamos que el directorio contiene un fichero **.git**. Esto abre la posibilidad de ejecutar comandos de Git y revisar el registro de commits del proyecto`
 
 <div style="text-align: center;">
   <img src="/assets/images/Editorial/commitenum.png" alt="editorial" width="500" oncontextmenu="return false;">
 </div>
 <br>
 
-Este fue el commit que automáticamente llamó mi atención, ya que el mensaje descriptivo deja bastante claro que hemos obtenido las credenciales de otro usuario del sistema: el usuario prod.
+Este fue el commit que automáticamente llamó mi atención, ya que el mensaje descriptivo deja bastante claro que hemos obtenido las credenciales de otro usuario del sistema, el usuario **prod**.
 
-Al iniciar sesión como el usuario **prod** y realizar la enumeración básica mencionada anteriormente, ejecutamos el comando **"sudo -l"** y evidenciamos que podemos ejecutar el siguiente script de Python como root mediante sudo.
+Al iniciar sesión como el usuario **prod** y realizar la enumeración básica mencionada anteriormente, ejecutamos el comando (sudo -l) y evidenciamos que podemos ejecutar el siguiente script de Python como root mediante sudo.
 
 <div style="text-align: center;">
   <img src="/assets/images/Editorial/sudoscript.png" alt="editorial" width="500" oncontextmenu="return false;">
@@ -200,32 +207,28 @@ La inyección de comandos reside en la siguiente línea, donde se utiliza el pro
 </div>
 <br>
 
-Este protocolo permite ejecutar comandos arbitrarios en el sistema sin ningún tipo de restricción.
+> Este protocolo permite ejecutar comandos arbitrarios en el sistema sin ningún tipo de restricción.
 
-Si ejecutamos el script pasando como argumento el comando **"whoami"**, obtenemos el siguiente resultado, lo que evidencia que los comandos se están ejecutando como el usuario root:
+Sí ejecutamos el script pasando como argumento el comando **"whoami"**, obtenemos el siguiente resultado, lo que evidencia que los comandos se están ejecutando como el usuario root:
 
 <div style="text-align: center;">
-  <img src="/assets/images/Editorial/commandinjection.png" alt="editorial" width="500" oncontextmenu="return false;">
+  <img src="/assets/images/Editorial/commandinjection.png" alt="íeditorial" width="500" oncontextmenu="return false;">
 </div>
 <br>
 
-Para la escalada de privilegios, opté por cambiar los permisos del fichero /etc/shadow ejecutando el siguiente comando:
+Para la escalada de privilegios, opté por cambiar los permisos del fichero **/etc/shadow** ejecutando el siguiente comando:
 
 ```bash
 chmod o+rw ../../../etc/shadow
 ```
+
 Teniendo permisos de escritura en este fichero, podemos sobreescribir la contraseña del usuario root y asignar una nueva. Para generar esta nueva contraseña, usamos el siguiente comando:
 
 ```bash
 openssl passwd -1 "tooradmin123"
 ```
 
-<div style="text-align: center;">
-  <img src="/assets/images/Editorial/sudoscript2.png" alt="editorial" width="500" oncontextmenu="return false;">
-</div>
-<br>
-
-Copiamos el hash generado y lo añadimos al fichero */etc/shadow*, luego guardamos los cambios.
+Copiamos el hash generado y lo añadimos al fichero **/etc/shadow**, luego guardamos los cambios.
 
 Después, realizamos login como el usuario root mediante el comando:
 
@@ -239,6 +242,6 @@ su root
 <br>
 
 <div style="text-align: center;">
-  <iframe src="https://giphy.com/embed/RPwrO4b46mOdy" width="480" height="274" style="pointer-events: none" oncontextmenu="return false;" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/rami-malek-RPwrO4b46mOdy">via GIPHY</a></p>
+  <iframe src="https://giphy.com/embed/RPwrO4b46mOdy" width="480" height="274" style="pointer-events: none" oncontextmenu="return false;" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/rami-malek-RPwrO4b46mOdy"></a></p>
 </div>
 <br>
