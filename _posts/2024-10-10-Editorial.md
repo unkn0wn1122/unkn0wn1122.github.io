@@ -12,8 +12,8 @@ categories:
  - Easy
 tags:
  - SSRF
- - sudo abuse
- - web
+ - Sudo Abuse
+ - Web
 ---
 
 # Reconocimiento
@@ -25,7 +25,7 @@ nmap -p- --open -vvv -n -sS -Pn --min-rate 5000 10.129.28.76
 ```
 
 <div style="text-align: center;">
-  <img src="/assets/images/Editorial/reconports.png" alt="editorial" width="500" oncontextmenu="return false;">
+  <img src="/assets/images/Editorial/reconports.png" alt="editorial" width="1000" oncontextmenu="return false;">
 </div>
 <br>
 
@@ -54,14 +54,14 @@ gobuster dir -u http://editorial.htb -w /usr/share/wordlists/dirbuster/directory
 El resultado del escaneo muestra los siguientes directorios:
 
 <div style="text-align: center;">
-  <img src="/assets/images/Editorial/recondir.png" alt="editorial" width="500" oncontextmenu="return false;">
+  <img src="/assets/images/Editorial/recondir.png" alt="editorial" width="1000" oncontextmenu="return false;">
 </div>
 <br>
 
 El directorio */upload*  llama la atención ya que podría ser un vector para encontrar contenido sensible o desencadenar la ejecución de un payload malicioso que carguemos en alguna otra parte de la página. Sin embargo, al revisarlo en el navegador, encontramos que contiene un formulario.
 
 <div style="text-align: center;">
-  <img src="/assets/images/Editorial/uploaddir.png" alt="editorial" width="500" oncontextmenu="return false;">
+  <img src="/assets/images/Editorial/uploaddir.png" alt="editorial" width="1000" oncontextmenu="return false;">
 </div>
 <br>
 
@@ -74,14 +74,14 @@ Los formularios son siempre un posible vector de ataque para explotar vulnerabil
 Analizando las peticiones mediante BurpSuite, intenté cargar un archivo malicioso para obtener una reverse shell sin éxito alguno. Sin embargo, al ingresar información en el campo **"Cover URL related to your book or"** y cargar una imagen, probamos un **SSRF**. 
 
 <div style="text-align: center;">
-  <img src="/assets/images/Editorial/SSRFPOC1.png" alt="editorial" width="500" oncontextmenu="return false;">
+  <img src="/assets/images/Editorial/SSRFPOC1.png" alt="editorial" width="1000" oncontextmenu="return false;">
 </div>
 <br>
 
 Levantamos un servicio HTTP en nuestra máquina atacante para verificar que la petición proviene desde la IP de la máquina víctima y no desde el cliente.
 
 <div style="text-align: center;">
-  <img src="/assets/images/Editorial/SSRFPOC2.png" alt="editorial" width="500" oncontextmenu="return false;">
+  <img src="/assets/images/Editorial/SSRFPOC2.png" alt="editorial" width="1000" oncontextmenu="return false;">
 </div>
 <br>
 
@@ -94,9 +94,9 @@ Confirmamos que es vulnerable a un **SSRF**.
 Este es un **SSRF blind/Out-of-band**, ya que no podemos ver directamente el contenido del localhost en la página. Para enumerar los puertos ocultos o detrás de un firewall, utilizamos **'ffuf'**.
 
 Se modifica la petición reemplazando el valor a `fuzzear` con la palabra **FUZZ**.
-`
+
 <div style="text-align: center;">
-  <img src="/assets/images/Editorial/fuff1.png" alt="editorial" width="500" oncontextmenu="return false;">
+  <img src="/assets/images/Editorial/fuff1.png" alt="editorial" width="1000" oncontextmenu="return false;">
 </div>
 <br>
 
@@ -113,21 +113,21 @@ ffuf -w /usr/share/SecLists/Discovery/Infrastructure/common-http-ports.txt -requ
 En la identificación de un puerto abierto, se utiliza la misma metodología que en la explotación de vulnerabilidades como por ejemplo **SQLi Blind**, donde el primer cambio en el contenido de la cabecera **Content-Length** en la respuesta puede indicar que en ese número de puerto está corriendo un servicio en el localhost de la máquina víctima.
 
 <div style="text-align: center;">
-  <img src="/assets/images/Editorial/fuff2.png" alt="editorial" width="500" oncontextmenu="return false;">
+  <img src="/assets/images/Editorial/fuff2.png" alt="editorial" width="1000" oncontextmenu="return false;">
 </div>
 <br>
 
 Al apuntar al puerto 5000 encontramos un archivo JSON con varios endpoints de una API corriendo en el localhost.
 
 <div style="text-align: center;">
-  <img src="/assets/images/Editorial/endpoints.png" alt="editorial" width="500" oncontextmenu="return false;">
+  <img src="/assets/images/Editorial/endpoints.png" alt="editorial" width="1000" oncontextmenu="return false;">
 </div>
 <br>
 
 Al enumerar el endpoint llamado **authors**, obtenemos las siguiente credenciales:
 
 <div style="text-align: center;">
-  <img src="/assets/images/Editorial/authors.png" alt="editorial" width="500" oncontextmenu="return false;">
+  <img src="/assets/images/Editorial/authors.png" alt="editorial" width="1000" oncontextmenu="return false;">
 </div>
 <br>
 
@@ -178,7 +178,7 @@ cat /etc/crontab
 Durante el proceso de enumeración, encontramos un directorio llamado **"apps"** en el espacio personal del usuario dev, el cual resulta llamativo. Al ingresar y listar su contenido a simple vista parece vacío, pero al ejecutar un `ls -a` para mostrar los archivos ocultos observamos que el directorio contiene un fichero **.git**. Esto abre la posibilidad de ejecutar comandos de Git y revisar el registro de commits del proyecto`
 
 <div style="text-align: center;">
-  <img src="/assets/images/Editorial/commitenum.png" alt="editorial" width="500" oncontextmenu="return false;">
+  <img src="/assets/images/Editorial/commitenum.png" alt="editorial" width="1000" oncontextmenu="return false;">
 </div>
 <br>
 
@@ -187,14 +187,14 @@ Este fue el commit que automáticamente llamó mi atención, ya que el mensaje d
 Al iniciar sesión como el usuario **prod** y realizar la enumeración básica mencionada anteriormente, ejecutamos el comando (sudo -l) y evidenciamos que podemos ejecutar el siguiente script de Python como root mediante sudo.
 
 <div style="text-align: center;">
-  <img src="/assets/images/Editorial/sudoscript.png" alt="editorial" width="500" oncontextmenu="return false;">
+  <img src="/assets/images/Editorial/sudoscript.png" alt="editorial" width="1000" oncontextmenu="return false;">
 </div>
 <br>
 
 Al validar los permisos que tenemos sobre este fichero, encuentro que es posible leer el contenido del script, lo cual resulta útil para identificar qué hace y evaluar qué posible escalada de privilegios podríamos aprovechar.
 
 <div style="text-align: center;">
-  <img src="/assets/images/Editorial/sudoscript1.png" alt="editorial" width="500" oncontextmenu="return false;">
+  <img src="/assets/images/Editorial/sudoscript1.png" alt="editorial" width="1000" oncontextmenu="return false;">
 </div>
 <br>
 
@@ -203,7 +203,7 @@ Al darle un vistazo, encontramos que el script permite clonar un repositorio de 
 La inyección de comandos reside en la siguiente línea, donde se utiliza el protocolo **ext**:
 
 <div style="text-align: center;">
-  <img src="/assets/images/Editorial/sudoscript2.png" alt="editorial" width="500" oncontextmenu="return false;">
+  <img src="/assets/images/Editorial/sudoscript2.png" alt="editorial" width="1000" oncontextmenu="return false;">
 </div>
 <br>
 
@@ -212,7 +212,7 @@ La inyección de comandos reside en la siguiente línea, donde se utiliza el pro
 Sí ejecutamos el script pasando como argumento el comando **"whoami"**, obtenemos el siguiente resultado, lo que evidencia que los comandos se están ejecutando como el usuario root:
 
 <div style="text-align: center;">
-  <img src="/assets/images/Editorial/commandinjection.png" alt="íeditorial" width="500" oncontextmenu="return false;">
+  <img src="/assets/images/Editorial/commandinjection.png" alt="íeditorial" width="1000" oncontextmenu="return false;">
 </div>
 <br>
 
@@ -237,7 +237,7 @@ su root
 ```
 
 <div style="text-align: center;">
-  <img src="/assets/images/Editorial/root.png" alt="editorial" width="500" oncontextmenu="return false;">
+  <img src="/assets/images/Editorial/root.png" alt="editorial" width="1000" oncontextmenu="return false;">
 </div>
 <br>
 
