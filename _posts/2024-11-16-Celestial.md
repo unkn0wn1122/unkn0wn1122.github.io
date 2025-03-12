@@ -1,7 +1,7 @@
 ---
 layout: single
 title: Celestial Writeup
-excerpt: "Celestial es un desafío de nivel medio que pone a prueba las habilidades en la explotación de aplicaciones web que emplean Nodejs, Indispensable una buena metodologia de enumeracion una vez dentro, el verdadero reto se centra en la escalada de privilegios mediante la explotación de configuraciones inadecuadas en tareas CRON y permisos mal gestionados."
+excerpt: "Celestial es un desafío de nivel medio que pone a prueba las habilidades en la explotación de aplicaciones web que emplean Nodejs, Indispensable una buena metodología de enumeración una vez dentro, el verdadero reto se centra en la escalada de privilegios mediante la explotación de configuraciones inadecuadas en tareas CRON y permisos mal gestionados."
 date: 2024-11-16
 classes: wide
 header: 
@@ -80,7 +80,7 @@ Analizando las respuestas que se obtienen al manipular el objeto **JSON** antes 
 </div>
 <br>
 
-Lo primero que se puede confirmar es de que la aplicación utiliza el módulo de Node.js  **node-serialize** el cual es empleado para la serializacion y deserealizacion de objetos en el backend, lo que es una buena señal para intentar un ataque de deserialización. También se evidencia que la aplicacion se encuentra montada en el directorio personal de un usuario del sistema, llamado **sun**.
+Lo primero que se puede confirmar es de que la aplicación utiliza el módulo de Node.js  **node-serialize** el cual es empleado para la serialización y deserialización de objetos en el backend, lo que es una buena señal para intentar un ataque de deserialización. También se evidencia que la aplicación se encuentra montada en el directorio personal de un usuario del sistema, llamado **sun**.
 
 ```bash
 /home/sun/server.js
@@ -89,6 +89,7 @@ Lo primero que se puede confirmar es de que la aplicación utiliza el módulo de
 Aunque no hay un servicio **SSH** disponible para intentar un ataque de fuerza bruta contra este usuario, se plantea un ataque de deserialización para explotar la vulnerabilidad.
 
 -------------------------------------
+
 # Explotación
 
 Después de interactuar con cada uno de los parámetros del objeto **JSON** se evidencia que los atributos **username, country** al parecer no son tratados por el backend y simplemente son representados en la página web, pero algo distinto sucede con el último atributo llamado **num** al cual si le ingresamos cualquier texto obtenemos la siguiente respuesta.
@@ -111,7 +112,7 @@ console.log(eval(operacion_matematica));
 // Obtendriamos el resultado de la operacion = 20
 ```
 
-Para la explotación, teniendo el anterior concepto claro, podemos entender cómo funciona este en la deserealización. Cuando la bandera **\_\$\$ND_FUNC\$$\_**  es añadida a un objeto serializado, dentro del archivo **serialize.js** del módulo **node-serialize** podemos encontrar cómo se emplea la deserialización. Cuando dicha bandera es encontrada, la función **eval()** es empleada para deserializar, pero esto no quiere decir que la función será ejecutada. Para que sea ejecutada en tiempo de ejecución debemos de usar una **IIFE(Immediately Invoked Function Expression)** que se representa con un paréntesis simple al final de la función, por ejemplo.
+Para la explotación, teniendo el anterior concepto claro, podemos entender cómo funciona este en la deserialización. Cuando la bandera **\_\$\$ND_FUNC\$$\_**  es añadida a un objeto serializado, dentro del archivo **serialize.js** del módulo **node-serialize** podemos encontrar cómo se emplea la deserialización. Cuando dicha bandera es encontrada, la función **eval()** es empleada para deserializar, pero esto no quiere decir que la función será ejecutada. Para que sea ejecutada en tiempo de ejecución debemos de usar una **IIFE(Immediately Invoked Function Expression)** que se representa con un paréntesis simple al final de la función, por ejemplo.
 
 ```javascript
 _$$ND_FUNC$$_function()require{('child_process').exec('ping -c 1 IP', function(error, stdout, stderr){ console.log(stdout) });}()
